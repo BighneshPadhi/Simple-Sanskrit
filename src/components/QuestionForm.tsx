@@ -11,7 +11,7 @@ interface QuestionFormProps {
   className?: string;
 }
 
-// Simple function to convert markdown-like formatting to HTML
+// Enhanced formatText function to properly handle markdown formatting
 const formatText = (text: string): string => {
   // Handle bold text
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -23,6 +23,9 @@ const formatText = (text: string): string => {
   text = text.replace(/^### (.*?)$/gm, '<h3 class="text-lg font-medium mt-4 mb-2">$1</h3>');
   text = text.replace(/^## (.*?)$/gm, '<h2 class="text-xl font-medium mt-5 mb-3">$1</h2>');
   text = text.replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-medium mt-6 mb-4">$1</h1>');
+  
+  // Handle lists
+  text = text.replace(/^\* (.*?)$/gm, '<li>$1</li>');
   
   return text;
 };
@@ -44,6 +47,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ verseContext, className }) 
     setAnswer(null);
     
     try {
+      // Create a prompt that specifically requests explanation based on the verse context
       const response: GeminiResponse = await askQuestion(question, verseContext);
       
       if (response.success) {
@@ -64,11 +68,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ verseContext, className }) 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="question" className="text-sm font-medium">
-            Ask a question about Sanskrit wisdom
+            {verseContext 
+              ? "Ask a question about this verse" 
+              : "Ask a question about Sanskrit wisdom"}
           </label>
           <Textarea
             id="question"
-            placeholder="E.g., What is the concept of dharma? or Explain the meaning of 'karma'"
+            placeholder={verseContext 
+              ? "E.g., What is the significance of this verse? or How does this apply to modern life?" 
+              : "E.g., What is the concept of dharma? or Explain the meaning of 'karma'"}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             className="min-h-[100px]"

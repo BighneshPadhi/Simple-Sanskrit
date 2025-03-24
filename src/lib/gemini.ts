@@ -88,8 +88,9 @@ export const generateVerses = async (source: string, count: number = 3): Promise
   Format the response as a JSON array with objects having these fields: 
   "id" (a unique identifier like "bg-12-1" for Bhagavad Gita chapter 12 verse 1), 
   "source" (e.g., "${source}"), 
-  "sanskrit" (the Sanskrit text in Devanagari script), and 
-  "translation" (the English translation). 
+  "sanskrit" (the Sanskrit text in Devanagari script), 
+  "translation" (the English translation), and
+  "explanation" (a brief explanation of the verse's meaning and philosophical significance).
   Only return the JSON array, no other text.`;
 
   const response = await generateContent(prompt);
@@ -110,7 +111,9 @@ export const generateVerses = async (source: string, count: number = 3): Promise
       // If source is "Bhagavad Gita", ensure the ID is formatted correctly (e.g., "bg-2-1")
       id: verse.id || `${source.toLowerCase().replace(/\s+/g, '-')}-${Math.floor(Math.random() * 20)}-${Math.floor(Math.random() * 50)}`,
       // Ensure source is properly formatted
-      source: verse.source || source
+      source: verse.source || source,
+      // Ensure explanation exists
+      explanation: verse.explanation || `This verse from ${source} explores philosophical concepts found in ancient Sanskrit wisdom.`
     })) : [];
   } catch (error) {
     console.error("Failed to parse generated verses:", error);
@@ -126,9 +129,12 @@ export const askQuestion = async (question: string, verseContext?: string): Prom
   
   if (verseContext) {
     prompt += `Context: ${verseContext}\n\n`;
+    prompt += `Based on the specific verse provided in the context, please explain the meaning, significance, and philosophical implications of this verse. Address the question directly in relation to this particular verse. `;
+  } else {
+    prompt += `Please provide information about this Sanskrit wisdom topic. `;
   }
   
-  prompt += `Please provide a clear, concise response about this Sanskrit verse or topic. Include historical context and philosophical significance where relevant. Format your response using Markdown for headings, paragraphs, and emphasis.`;
+  prompt += `Include historical context and philosophical significance where relevant. Format your response using Markdown for headings (**bold**) and paragraphs. Ensure that formatting is properly displayed with actual bold text rather than showing asterisks.`;
   
   return generateContent(prompt);
 };
