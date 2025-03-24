@@ -5,6 +5,10 @@ import Footer from "@/components/Footer";
 import VerseCard from "@/components/VerseCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { generateVerses } from "@/lib/gemini";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import QuestionForm from "@/components/QuestionForm";
 
 // Sample verses data by source
 const versesBySource = {
@@ -67,7 +71,42 @@ const categories = [
 
 const Explore: React.FC = () => {
   const [activeTab, setActiveTab] = useState("bhagavad-gita");
+  const [additionalVerses, setAdditionalVerses] = useState<Record<string, any[]>>({
+    "bhagavad-gita": [],
+    "upanishads": [],
+    "vedas": [],
+  });
+  const [loading, setLoading] = useState(false);
   
+  const handleLoadMore = async () => {
+    setLoading(true);
+    try {
+      const sourceName = categories.find(cat => cat.id === activeTab)?.name || "";
+      const newVerses = await generateVerses(sourceName, 3);
+      
+      if (newVerses.length > 0) {
+        setAdditionalVerses(prev => ({
+          ...prev,
+          [activeTab]: [...prev[activeTab], ...newVerses]
+        }));
+        toast.success(`Loaded ${newVerses.length} more verses`);
+      } else {
+        toast.error("Could not load additional verses");
+      }
+    } catch (error) {
+      console.error("Error loading more verses:", error);
+      toast.error("Failed to load more verses");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const allVerses = (category: string) => {
+    const originalVerses = versesBySource[category as keyof typeof versesBySource] || [];
+    const additional = additionalVerses[category] || [];
+    return [...originalVerses, ...additional];
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -102,7 +141,7 @@ const Explore: React.FC = () => {
               <TabsContent key={category.id} value={category.id} className="animate-scale-in">
                 <div className="max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {versesBySource[category.id as keyof typeof versesBySource].map((verse, index) => (
+                    {allVerses(category.id).map((verse, index) => (
                       <div key={verse.id} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
                         <VerseCard {...verse} className="h-full" />
                       </div>
@@ -114,12 +153,26 @@ const Explore: React.FC = () => {
           </Tabs>
           
           <div className="mt-16 text-center animate-fade-in">
-            <p className="text-muted-foreground mb-6">
-              Only showing a small sample of verses. In a complete implementation, more would be available.
-            </p>
-            <Button variant="outline" className="rounded-full" disabled>
-              Load More Verses
+            <Button 
+              variant="outline" 
+              className="rounded-full"
+              onClick={handleLoadMore}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading More Verses...
+                </>
+              ) : "Load More Verses"}
             </Button>
+          </div>
+          
+          <div className="mt-20 max-w-2xl mx-auto bg-card border border-border rounded-lg p-6 animate-fade-in">
+            <h2 className="text-2xl font-display font-medium mb-4 text-center">
+              Ask About Sanskrit Wisdom
+            </h2>
+            <QuestionForm />
           </div>
         </div>
       </main>
