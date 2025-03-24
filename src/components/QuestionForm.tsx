@@ -11,6 +11,22 @@ interface QuestionFormProps {
   className?: string;
 }
 
+// Simple function to convert markdown-like formatting to HTML
+const formatText = (text: string): string => {
+  // Handle bold text
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Handle italics
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Handle headers
+  text = text.replace(/^### (.*?)$/gm, '<h3 class="text-lg font-medium mt-4 mb-2">$1</h3>');
+  text = text.replace(/^## (.*?)$/gm, '<h2 class="text-xl font-medium mt-5 mb-3">$1</h2>');
+  text = text.replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-medium mt-6 mb-4">$1</h1>');
+  
+  return text;
+};
+
 const QuestionForm: React.FC<QuestionFormProps> = ({ verseContext, className }) => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -76,11 +92,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ verseContext, className }) 
       {answer && (
         <div className="mt-6 p-4 bg-muted/50 rounded-lg animate-fade-in">
           <h3 className="font-medium mb-2">Answer:</h3>
-          <div className="prose prose-sm max-w-none text-muted-foreground">
-            {answer.split('\n').map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
+          <div 
+            className="prose prose-sm max-w-none text-muted-foreground"
+            dangerouslySetInnerHTML={{ 
+              __html: answer.split('\n').map(paragraph => 
+                paragraph ? `<p>${formatText(paragraph)}</p>` : '<br/>'
+              ).join('')
+            }}
+          />
         </div>
       )}
     </div>

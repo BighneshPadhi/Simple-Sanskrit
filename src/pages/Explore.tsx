@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VerseCard from "@/components/VerseCard";
@@ -77,6 +76,52 @@ const Explore: React.FC = () => {
     "vedas": [],
   });
   const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    try {
+      const storedVersesString = localStorage.getItem('generatedVerses');
+      if (storedVersesString) {
+        const storedVerses = JSON.parse(storedVersesString);
+        
+        const categoryVerses: Record<string, any[]> = {
+          "bhagavad-gita": [],
+          "upanishads": [],
+          "vedas": [],
+        };
+        
+        storedVerses.forEach((verse: any) => {
+          const source = verse.source.toLowerCase();
+          if (source.includes("gita")) {
+            categoryVerses["bhagavad-gita"].push(verse);
+          } else if (source.includes("upanishad")) {
+            categoryVerses["upanishads"].push(verse);
+          } else if (source.includes("veda")) {
+            categoryVerses["vedas"].push(verse);
+          }
+        });
+        
+        setAdditionalVerses(categoryVerses);
+      }
+    } catch (error) {
+      console.error("Error loading stored verses:", error);
+    }
+  }, []);
+  
+  useEffect(() => {
+    try {
+      const allAdditionalVerses = [
+        ...additionalVerses["bhagavad-gita"],
+        ...additionalVerses["upanishads"],
+        ...additionalVerses["vedas"]
+      ];
+      
+      if (allAdditionalVerses.length > 0) {
+        localStorage.setItem('generatedVerses', JSON.stringify(allAdditionalVerses));
+      }
+    } catch (error) {
+      console.error("Error saving verses to localStorage:", error);
+    }
+  }, [additionalVerses]);
   
   const handleLoadMore = async () => {
     setLoading(true);

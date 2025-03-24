@@ -103,7 +103,15 @@ export const generateVerses = async (source: string, count: number = 3): Promise
     // Try to extract JSON from the response
     const jsonStr = response.content.trim().replace(/```json|```/g, '');
     const verses = JSON.parse(jsonStr);
-    return Array.isArray(verses) ? verses : [];
+    
+    // Ensure each verse has a valid ID format for routing
+    return Array.isArray(verses) ? verses.map(verse => ({
+      ...verse,
+      // If source is "Bhagavad Gita", ensure the ID is formatted correctly (e.g., "bg-2-1")
+      id: verse.id || `${source.toLowerCase().replace(/\s+/g, '-')}-${Math.floor(Math.random() * 20)}-${Math.floor(Math.random() * 50)}`,
+      // Ensure source is properly formatted
+      source: verse.source || source
+    })) : [];
   } catch (error) {
     console.error("Failed to parse generated verses:", error);
     return [];
@@ -120,7 +128,7 @@ export const askQuestion = async (question: string, verseContext?: string): Prom
     prompt += `Context: ${verseContext}\n\n`;
   }
   
-  prompt += `Please provide a clear, concise response about this Sanskrit verse or topic. Include historical context and philosophical significance where relevant.`;
+  prompt += `Please provide a clear, concise response about this Sanskrit verse or topic. Include historical context and philosophical significance where relevant. Format your response using Markdown for headings, paragraphs, and emphasis.`;
   
   return generateContent(prompt);
 };

@@ -58,9 +58,36 @@ const Verse: React.FC = () => {
   const [verse, setVerse] = useState<typeof allVerses[0] | null>(null);
   
   useEffect(() => {
-    // Find the verse with the matching ID
+    // Try to find the verse in the static list
     const foundVerse = allVerses.find(v => v.id === id);
-    setVerse(foundVerse || null);
+    
+    if (foundVerse) {
+      setVerse(foundVerse);
+      return;
+    }
+    
+    // If not found in the static list, check localStorage for generated verses
+    try {
+      const storedVersesString = localStorage.getItem('generatedVerses');
+      if (storedVersesString) {
+        const storedVerses = JSON.parse(storedVersesString);
+        const storedVerse = storedVerses.find((v: any) => v.id === id);
+        
+        if (storedVerse) {
+          // Add explanation field if not present
+          if (!storedVerse.explanation) {
+            storedVerse.explanation = "This is a generated verse. Its philosophical significance relates to the teachings found in the source text.";
+          }
+          setVerse(storedVerse);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error retrieving stored verses:", error);
+    }
+    
+    // If verse is not found in either source, set to null
+    setVerse(null);
   }, [id]);
   
   if (!verse) {
