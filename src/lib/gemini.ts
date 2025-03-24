@@ -5,7 +5,7 @@
 
 // This is a publishable API key (safe to include in frontend code)
 const API_KEY = "AIzaSyAMupl5_cLN-k_JcSerBydz19LvJnyLf-I";
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+const API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent";
 
 export interface GeminiResponse {
   success: boolean;
